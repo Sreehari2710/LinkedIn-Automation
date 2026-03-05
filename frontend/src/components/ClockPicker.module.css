@@ -1,0 +1,184 @@
+.container {
+    position: relative;
+    user-select: none;
+}
+
+.trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.625rem 1.25rem;
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 160px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.trigger:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 97, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.timeLabel {
+    font-size: 1rem;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.clockIcon {
+    font-size: 1rem;
+    color: var(--primary);
+    opacity: 0.8;
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    animation: fadeInScale 0.2s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+.clockFace {
+    width: 220px;
+    height: 220px;
+    position: relative;
+    cursor: crosshair;
+}
+
+.svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
+}
+
+.outerCircle {
+    fill: #fdfdfd;
+    stroke: #f0f0f0;
+    stroke-width: 2;
+}
+
+.number {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    fill: #64748b;
+}
+
+.majorTick {
+    stroke: #cbd5e1;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+.minorTick {
+    stroke: #e2e8f0;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+}
+
+.handGroup {
+    cursor: grab;
+    transition: all 0.1s ease-out;
+}
+
+.handGroup:active {
+    cursor: grabbing;
+}
+
+.hourHand {
+    stroke: #334155;
+    stroke-width: 6;
+    stroke-linecap: round;
+}
+
+.minuteHand {
+    stroke: var(--primary);
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+.handAnchor {
+    fill: #FFFFFF;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.centerDot {
+    fill: #334155;
+    stroke: #FFFFFF;
+    stroke-width: 2;
+}
+
+.controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ampmSwitch {
+    display: flex;
+    background: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: 10px;
+}
+
+.swbtn {
+    flex: 1;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.activeAm {
+    background: #FFFFFF;
+    color: #15803D;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.activePm {
+    background: #FFFFFF;
+    color: #BE185D;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    font-style: italic;
+}
