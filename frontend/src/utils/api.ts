@@ -1,4 +1,14 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const getBaseURL = () => {
+    let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    // Remove trailing slash if present
+    if (url.endsWith('/')) {
+        url = url.slice(0, -1);
+    }
+    return url;
+};
+
+export const API_URL = getBaseURL();
+console.log('Frontend using API URL:', API_URL);
 
 export const getKeywords = async () => {
     const res = await fetch(`${API_URL}/keywords`);
