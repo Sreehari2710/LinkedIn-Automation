@@ -18,6 +18,10 @@ app.use(express.json());
 initScheduler().catch(err => console.error('Failed to init scheduler:', err));
 
 // Routes
+app.get('/', (req, res) => {
+    res.send('LinkedIn Automation API is running 🚀');
+});
+
 app.use('/api/keywords', keywordRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/results', resultsRoutes);
