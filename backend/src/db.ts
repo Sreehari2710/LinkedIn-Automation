@@ -5,6 +5,8 @@ import { promisify } from 'util';
 
 dotenv.config();
 
+let pool: Pool | null = null;
+
 const resolveIPv4 = async (url: string) => {
     try {
         const parsed = new URL(url);
@@ -18,10 +20,7 @@ const resolveIPv4 = async (url: string) => {
     }
 };
 
-// We initialize the pool lazily or after resolution
-let pool: Pool;
-
-export const getPool = async () => {
+export const getPool = async (): Promise<Pool> => {
     if (!pool) {
         const connectionString = await resolveIPv4(process.env.DATABASE_URL || '');
         pool = new Pool({
@@ -37,11 +36,7 @@ export const query = async (text: string, params?: any[]) => {
     return p.query(text, params);
 };
 
-// Exporting a getter for the pool instead of the pool itself
-export { pool };
-
 export const initDb = async () => {
-    // Ensure uuid-ossp extension for gen_random_uuid() or just use gen_random_uuid() which is built-in for modern PG
     await query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
 
     await query(`
@@ -70,7 +65,13 @@ export const initDb = async () => {
         );
     `);
 
+    // Ensure Settings table exists for production robustness
+    await query(`
+        CREATE TABLE IF NOT EXISTS "Settings" (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );
+    `);
+
     console.log('Database tables initialized');
 };
-
-export default pool;

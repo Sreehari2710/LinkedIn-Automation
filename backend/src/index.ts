@@ -6,11 +6,7 @@ import { initScheduler } from './services/scheduler';
 import keywordRoutes from './routes/keywords';
 import jobRoutes from './routes/jobs';
 import resultsRoutes from './routes/results';
-import { initDb, pool } from './db';
-
-dns.setDefaultResultOrder('ipv4first');
-
-dotenv.config();
+import { initDb, query } from './db';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,7 +37,7 @@ app.get('/', (req, res) => {
 // Debug endpoint to check DB connection
 app.get('/api/debug', async (req: Request, res: Response) => {
     try {
-        const result = await pool.query('SELECT NOW()');
+        const result = await query('SELECT NOW()');
         res.json({
             status: 'connected',
             time: result.rows[0].now,
