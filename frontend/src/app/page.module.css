@@ -22,6 +22,7 @@
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary), var(--accent));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.02em;
 }
@@ -222,6 +223,12 @@
   margin-bottom: 2rem;
 }
 
+.headerActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .exportButton {
   background: white;
   color: var(--primary);
@@ -268,6 +275,16 @@
   padding: 0.5rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--border);
+}
+
+.schedulerContainer .inputField {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.schedulerContainer .input {
+  width: 130px;
 }
 
 .pauseButton {
@@ -445,6 +462,84 @@
   text-decoration: underline;
 }
 
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.modalCard h3 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: var(--foreground);
+}
+
+.modalCard p {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.cancelBtn {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background: #e2e8f0;
+}
+
+.confirmDeleteBtn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.confirmDeleteBtn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
 .badge {
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
@@ -485,10 +580,33 @@
     margin-bottom: 0.5rem !important;
   }
 
+  /* Target the nav/buttons container in Home header */
+  .header>div {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 1.5rem !important;
+  }
+
   .schedulerContainer {
     width: 100% !important;
     align-items: center !important;
     background: #f8fafc !important;
+    padding: 1.25rem 1rem !important;
+  }
+
+  .schedulerContainer .inputField {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 1rem !important;
+  }
+
+  .schedulerContainer .input {
+    width: 100% !important;
+  }
+
+  .schedulerContainer label {
+    white-space: normal !important;
+    text-align: center;
   }
 
   .formSection {
@@ -517,8 +635,14 @@
 
   .resultsHeader {
     flex-direction: column !important;
-    gap: 1rem !important;
+    gap: 1.25rem !important;
     align-items: stretch !important;
+  }
+
+  .headerActions {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 0.75rem !important;
   }
 
   .resultsHeader h2 {
@@ -554,5 +678,9 @@
   .exportButton {
     width: 100% !important;
     justify-content: center !important;
+  }
+
+  .primaryButton {
+    width: 100% !important;
   }
 }

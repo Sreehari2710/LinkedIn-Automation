@@ -31,6 +31,7 @@ export default function ResultsPage() {
     const [selectedJob, setSelectedJob] = useState<ScrapeJob | null>(null);
     const [results, setResults] = useState<ScrapedPost[]>([]);
     const [loading, setLoading] = useState(true);
+    const [jobToDelete, setJobToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         fetchHistory();
@@ -70,23 +71,40 @@ export default function ResultsPage() {
 
     const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation(); // Prevent row click
-        if (confirm('Are you sure you want to delete this scrape session?')) {
-            try {
-                await deleteScrapeJob(id);
-                fetchHistory();
-            } catch (e) {
-                console.error(e);
-                alert('Failed to delete job');
-            }
+        setJobToDelete(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!jobToDelete) return;
+        try {
+            await deleteScrapeJob(jobToDelete);
+            setJobToDelete(null);
+            fetchHistory();
+        } catch (e) {
+            console.error(e);
+            alert('Failed to delete job');
         }
     };
 
     return (
         <main className={styles.main}>
+            {jobToDelete && (
+                <div className={styles.modalOverlay} onClick={() => setJobToDelete(null)}>
+                    <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+                        <h3>Delete Session?</h3>
+                        <p>Are you sure you want to delete this scrape session? This action cannot be undone and all associated results will be lost.</p>
+                        <div className={styles.modalActions}>
+                            <button className={styles.cancelBtn} onClick={() => setJobToDelete(null)}>Cancel</button>
+                            <button className={styles.confirmDeleteBtn} onClick={confirmDelete}>Delete Session</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <section className={styles.resultsSection} style={{ marginTop: 0 }}>
                 <div className={styles.resultsHeader}>
                     <h2>{selectedJob ? `Results for: ${selectedJob.term}` : 'Scrape History'}</h2>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className={styles.headerActions}>
                         {selectedJob && (
                             <button className={styles.exportButton} onClick={() => setSelectedJob(null)} style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                                 ← Back to History

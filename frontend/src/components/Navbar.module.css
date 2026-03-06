@@ -68,3 +68,31 @@
     background: var(--primary);
     border-radius: 2px;
 }
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    .logo {
+        font-size: 1.1rem;
+    }
+
+    .navLinks {
+        gap: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        font-size: 1rem;
+    }
+
+    .navLinks {
+        gap: 1rem;
+    }
+
+    .navLinks a {
+        font-size: 0.9rem;
+    }
+}

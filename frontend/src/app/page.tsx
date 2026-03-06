@@ -158,16 +158,16 @@ export default function Home() {
         <h1>LinkedIn Automation</h1>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <div className={styles.schedulerContainer}>
-            <div className={styles.inputField} style={{ flexDirection: 'row', alignItems: 'center', gap: '0.75rem', marginBottom: 0 }}>
-              <label style={{ fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Daily Scrape at:</label>
+            <div className={styles.inputField} style={{ alignItems: 'center', marginBottom: 0 }}>
+              <label style={{ fontSize: '0.9rem' }}>Daily Scrape at:</label>
               <input
                 type="time"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
                 className={styles.input}
-                style={{ width: '130px', padding: '0.5rem 0.75rem', fontSize: '1rem', border: '1px solid var(--border)', borderRadius: '8px' }}
+                style={{ padding: '0.5rem 0.75rem', fontSize: '1rem' }}
               />
-              <button className={styles.exportButton} onClick={handleUpdateSchedule} style={{ padding: '0.625rem 1rem' }}>
+              <button className={styles.exportButton} onClick={handleUpdateSchedule}>
                 Update
               </button>
             </div>
