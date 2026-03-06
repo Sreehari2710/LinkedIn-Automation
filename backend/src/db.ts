@@ -75,6 +75,24 @@ export const initDb = async () => {
         );
     `);
 
+    await query(`
+        CREATE TABLE IF NOT EXISTS "ScrapedPost" (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            "keywordId" UUID REFERENCES "Keyword"(id) ON DELETE CASCADE,
+            "jobId" UUID REFERENCES "ScrapeJob"(id) ON DELETE CASCADE,
+            description TEXT,
+            "postLink" TEXT UNIQUE,
+            "datePosted" TEXT,
+            "authorName" TEXT,
+            "authorHeadline" TEXT,
+            "authorUrl" TEXT,
+            "numLikes" INTEGER DEFAULT 0,
+            "numComments" INTEGER DEFAULT 0,
+            "numShares" INTEGER DEFAULT 0,
+            "scrapedAt" TIMESTAMP DEFAULT NOW()
+        );
+    `);
+
     // Ensure Settings table exists for production robustness
     await query(`
         CREATE TABLE IF NOT EXISTS "Settings" (

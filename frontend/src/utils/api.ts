@@ -103,3 +103,10 @@ export const toggleSchedulePause = async (isPaused: boolean) => {
     });
     return handleResponse(res);
 };
+
+export const deleteScrapeJob = async (id: string) => {
+    const res = await fetch(`${API_URL}/jobs/${id}`, {
+        method: 'DELETE',
+    });
+    return handleResponse(res);
+};

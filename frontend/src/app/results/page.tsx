@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import styles from '../page.module.css';
-import { getScrapeHistory, getResultsByJob, downloadResults } from '../../utils/api';
+import { getScrapeHistory, getResultsByJob, downloadResults, deleteScrapeJob } from '../../utils/api';
 
 type ScrapeJob = {
     id: string;
@@ -68,6 +68,19 @@ export default function ResultsPage() {
         downloadResults();
     };
 
+    const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Prevent row click
+        if (confirm('Are you sure you want to delete this scrape session?')) {
+            try {
+                await deleteScrapeJob(id);
+                fetchHistory();
+            } catch (e) {
+                console.error(e);
+                alert('Failed to delete job');
+            }
+        }
+    };
+
     return (
         <main className={styles.main}>
             <section className={styles.resultsSection} style={{ marginTop: 0 }}>
@@ -117,7 +130,16 @@ export default function ResultsPage() {
                                             </td>
                                             <td>{job.itemCount || 0}</td>
                                             <td>
-                                                <button className={styles.postLink}>View Results</button>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <button className={styles.postLink}>View Results</button>
+                                                    <button
+                                                        onClick={(e) => handleDeleteJob(e, job.id)}
+                                                        className={styles.deleteBtn}
+                                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', margin: 0 }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

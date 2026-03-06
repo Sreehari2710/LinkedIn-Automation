@@ -84,4 +84,15 @@ router.post('/trigger', async (req: Request, res: Response) => {
     }
 });
 
+// Delete a scrape job
+router.delete('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        await query('DELETE FROM "ScrapeJob" WHERE id = $1', [id]);
+        res.json({ message: 'Scrape job deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete scrape job' });
+    }
+});
+
 export default router;
