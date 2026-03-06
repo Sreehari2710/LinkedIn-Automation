@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import axios from 'axios';
-import { scheduleJob, getScheduledTime, togglePause, getIsPaused } from '../services/scheduler';
+import { updateSchedule, getScheduledTime, togglePause, getIsPaused } from '../services/scheduler';
 import { startScrapingJob } from '../scraper/index';
 
 const router = Router();
@@ -66,8 +66,8 @@ router.post('/schedule/toggle', async (req: Request, res: Response) => {
 router.post('/schedule', async (req: Request, res: Response) => {
     const { time } = req.body;
     try {
-        await scheduleJob(time);
-        res.json({ message: `Successfully scheduled daily scrape for ${time}` });
+        await updateSchedule(time);
+        res.json({ message: `Successfully updated daily scrape preference for ${time}` });
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }
