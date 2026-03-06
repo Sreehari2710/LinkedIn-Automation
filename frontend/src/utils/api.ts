@@ -10,9 +10,17 @@ const getBaseURL = () => {
 export const API_URL = getBaseURL();
 console.log('Frontend using API URL:', API_URL);
 
+const handleResponse = async (res: Response) => {
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || `HTTP error! status: ${res.status}`);
+    }
+    return res.json();
+};
+
 export const getKeywords = async () => {
     const res = await fetch(`${API_URL}/keywords`);
-    return res.json();
+    return handleResponse(res);
 };
 
 export const createKeyword = async (data: any) => {
@@ -21,7 +29,7 @@ export const createKeyword = async (data: any) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
     });
-    return res.json();
+    return handleResponse(res);
 };
 
 export const updateKeyword = async (id: string, data: any) => {
@@ -30,26 +38,26 @@ export const updateKeyword = async (id: string, data: any) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
     });
-    return res.json();
+    return handleResponse(res);
 };
 
 export const deleteKeyword = async (id: string) => {
     const res = await fetch(`${API_URL}/keywords/${id}`, {
         method: 'DELETE',
     });
-    return res.json();
+    return handleResponse(res);
 };
 
 export const triggerScrapeJob = async () => {
     const res = await fetch(`${API_URL}/jobs/trigger`, {
         method: 'POST',
     });
-    return res.json();
+    return handleResponse(res);
 };
 
 export const getResults = async (limit: number = 50) => {
     const res = await fetch(`${API_URL}/results?limit=${limit}`);
-    return res.json();
+    return handleResponse(res);
 };
 
 export const downloadResults = () => {
@@ -58,7 +66,7 @@ export const downloadResults = () => {
 
 export const getScheduledTime = async () => {
     const res = await fetch(`${API_URL}/jobs/scheduled-time`);
-    return res.json();
+    return handleResponse(res);
 };
 
 export const updateScheduledTime = async (time: string) => {
@@ -67,24 +75,24 @@ export const updateScheduledTime = async (time: string) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ time }),
     });
-    return res.json();
+    return handleResponse(res);
 };
 
 export const getScrapeHistory = async () => {
     const res = await fetch(`${API_URL}/jobs/history`);
-    return res.json();
+    return handleResponse(res);
 };
 
 export const stopScrapeJob = async (id: string) => {
     const res = await fetch(`${API_URL}/jobs/stop/${id}`, {
         method: 'POST',
     });
-    return res.json();
+    return handleResponse(res);
 };
 
 export const getResultsByJob = async (jobId: string) => {
     const res = await fetch(`${API_URL}/results/job/${jobId}`);
-    return res.json();
+    return handleResponse(res);
 };
 
 export const toggleSchedulePause = async (isPaused: boolean) => {
@@ -93,5 +101,5 @@ export const toggleSchedulePause = async (isPaused: boolean) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isPaused }),
     });
-    return res.json();
+    return handleResponse(res);
 };

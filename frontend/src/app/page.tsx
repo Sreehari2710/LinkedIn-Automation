@@ -86,15 +86,20 @@ export default function Home() {
     e.preventDefault();
     if (!term) return;
     setLoading(true);
-    await createKeyword({ term, location, timeFilter, sortBy, limit, isActive: true });
-    setTerm('');
-    setLocation('');
-    setTimeFilter('past-24h');
-    setSortBy('top-match');
-    setLimit(10);
-    await fetchKeywords();
-    setLoading(false);
-    showAlert('Keyword added successfully');
+    try {
+      await createKeyword({ term, location, timeFilter, sortBy, limit, isActive: true });
+      setTerm('');
+      setLocation('');
+      setTimeFilter('past-24h');
+      setSortBy('top-match');
+      setLimit(10);
+      await fetchKeywords();
+      showAlert('Keyword added successfully');
+    } catch (e: any) {
+      showAlert(e.message || 'Failed to add keyword', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -127,12 +132,13 @@ export default function Home() {
   };
 
   const handleTogglePause = async () => {
+    const nextState = !isPaused;
     try {
-      const res = await toggleSchedulePause(!isPaused);
+      const res = await toggleSchedulePause(nextState);
       setIsPaused(res.isPaused);
       showAlert(res.message, 'info');
-    } catch (e) {
-      showAlert('Failed to toggle schedule', 'error');
+    } catch (e: any) {
+      showAlert(e.message || 'Failed to toggle schedule', 'error');
     }
   };
 

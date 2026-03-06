@@ -6,20 +6,30 @@ import keywordRoutes from './routes/keywords';
 import jobRoutes from './routes/jobs';
 import resultsRoutes from './routes/results';
 
+import { initDb } from './db';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Initialize Database and Scheduler
+(async () => {
+    try {
+        await initDb();
+        await initScheduler();
+    } catch (err) {
+        console.error('Initialization failed:', err);
+    }
+})();
+
 app.use(cors({
-    origin: '*', // Allows all origins, including localhost and production
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
 
-// Initialize dynamic scheduler
-initScheduler().catch(err => console.error('Failed to init scheduler:', err));
+app.use(express.json());
 
 // Routes
 app.get('/', (req, res) => {
