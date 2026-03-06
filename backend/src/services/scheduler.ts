@@ -1,6 +1,8 @@
+import cron, { ScheduledTask } from 'node-cron';
 import { startScrapingJob } from '../scraper/index';
 import { query } from '../db';
 
+let currentJob: ScheduledTask | null = null;
 let scheduledTime: string = '08:00'; // Default to 8 AM
 let isPaused: boolean = false;
 
@@ -26,16 +28,38 @@ export const togglePause = async (paused: boolean) => {
     return isPaused;
 };
 
-export const updateSchedule = async (time: string) => {
+export const scheduleJob = async (time: string) => {
     // Validate time format (HH:mm)
     const timeRegex = /^([01]\d|2[0-3]):?([0-5]\d)$/;
     if (!timeRegex.test(time)) {
         throw new Error('Invalid time format. Use HH:mm');
     }
 
+    const [hours, minutes] = time.split(':');
+    const cronExpression = `${minutes} ${hours} * * *`;
+
+    if (currentJob) {
+        currentJob.stop();
+    }
+
     scheduledTime = time;
     await query('UPDATE "Settings" SET value = $1 WHERE key = $2', [scheduledTime, 'scheduledTime']);
-    console.log(`Daily scrape preference updated to ${time}.`);
+
+    currentJob = cron.schedule(cronExpression, async () => {
+        if (isPaused) {
+            console.log('Scraping job skipped because scheduler is PAUSED.');
+            return;
+        }
+        console.log(`Running scheduled scraping job at ${time}...`);
+        try {
+            await startScrapingJob();
+            console.log('Scheduled scraping job completed successfully.');
+        } catch (error) {
+            console.error('Error during scheduled scraping job:', error);
+        }
+    });
+
+    console.log(`Scraping job scheduled for ${time} daily.`);
     return true;
 };
 
@@ -51,39 +75,8 @@ export const initScheduler = async () => {
         if (pauseRes.rows.length > 0) isPaused = pauseRes.rows[0].value === 'true';
 
         console.log(`Loaded settings: Time=${scheduledTime}, Paused=${isPaused}`);
+        await scheduleJob(scheduledTime);
     } catch (error) {
-        console.error('Failed to initialize scheduler settings:', error);
-    }
-};
-
-/**
- * This function will be called by the Netlify Scheduled Function (every hour).
- * It checks the database to see if it SHOULD run (not paused AND the hour matches).
- */
-export const runScheduledTask = async () => {
-    await initScheduler();
-
-    if (isPaused) {
-        console.log('Scheduled task skipped: Scheduler is PAUSED in settings.');
-        return;
-    }
-
-    // Get current hour in UTC or local (Supabase/Server time)
-    // We'll compare just the "Hour" portion for simplicity in the hourly cron.
-    const currentHour = new Date().getHours();
-    const [scheduledHour] = scheduledTime.split(':').map(Number);
-
-    if (currentHour !== scheduledHour) {
-        console.log(`Scheduled task skipped: Current hour (${currentHour}) does not match scheduled hour (${scheduledHour}).`);
-        return;
-    }
-
-    console.log(`Executing scheduled scraping job (Target: ${scheduledTime})...`);
-    try {
-        await startScrapingJob();
-        console.log('Scheduled scraping job completed successfully.');
-    } catch (error) {
-        console.error('Error during scheduled scraping job:', error);
-        throw error;
+        console.error('Failed to initialize scheduler:', error);
     }
 };
