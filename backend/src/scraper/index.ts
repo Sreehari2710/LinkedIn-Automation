@@ -23,8 +23,8 @@ export const startScrapingJob = async () => {
 
             // 1. Create ScrapeJob record
             const jobResult = await query(
-                'INSERT INTO "ScrapeJob" ("keywordId", "status") VALUES ($1, $2) RETURNING id',
-                [keyword.id, 'RUNNING']
+                'INSERT INTO "ScrapeJob" ("keywordId", "status", "term") VALUES ($1, $2, $3) RETURNING id',
+                [keyword.id, 'RUNNING', keyword.term]
             );
             const jobId = jobResult.rows[0].id;
 

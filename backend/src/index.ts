@@ -41,6 +41,8 @@ app.get('/api/debug', async (req: Request, res: Response) => {
         res.json({
             status: 'connected',
             time: result.rows[0].now,
+            server_time: new Date().toISOString(),
+            server_time_readable: new Date().toLocaleString(),
             env: {
                 has_db_url: !!process.env.DATABASE_URL,
                 node_env: process.env.NODE_ENV

@@ -38,14 +38,32 @@ export default function Home() {
   const [sortBy, setSortBy] = useState('top-match');
   const [limit, setLimit] = useState<number>(10);
   const [loading, setLoading] = useState(false);
+  const [keywordToDelete, setKeywordToDelete] = useState<string | null>(null);
+  const [serverTime, setServerTime] = useState<string | null>(null);
 
   useEffect(() => {
     fetchKeywords();
     fetchScheduledStatus();
     fetchRunningJobs();
-    const interval = setInterval(fetchRunningJobs, 5000);
+    fetchServerTime();
+    const interval = setInterval(() => {
+      fetchRunningJobs();
+      fetchServerTime();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchServerTime = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/debug`);
+      const data = await res.json();
+      if (data.server_time_readable) {
+        setServerTime(data.server_time_readable);
+      }
+    } catch (e) {
+      console.error('Failed to fetch server time', e);
+    }
+  };
 
   const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setAlert({ message, type });
@@ -102,10 +120,20 @@ export default function Home() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteKeyword(id);
-    await fetchKeywords();
-    showAlert('Keyword deleted');
+  const handleDeleteClick = (id: string) => {
+    setKeywordToDelete(id);
+  };
+
+  const confirmKeywordDelete = async () => {
+    if (!keywordToDelete) return;
+    try {
+      await deleteKeyword(keywordToDelete);
+      await fetchKeywords();
+      setKeywordToDelete(null);
+      showAlert('Keyword removed');
+    } catch (e: any) {
+      showAlert('Failed to remove keyword', 'error');
+    }
   };
 
   const handleTriggerScrape = async () => {
@@ -154,19 +182,39 @@ export default function Home() {
         </div>
       )}
 
+      {keywordToDelete && (
+        <div className={styles.modalOverlay} onClick={() => setKeywordToDelete(null)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <h3>Remove Keyword?</h3>
+            <p>Are you sure you want to remove this keyword configuration? History for this keyword will be preserved, but no new scrapes will be scheduled for it.</p>
+            <div className={styles.modalActions}>
+              <button className={styles.cancelBtn} onClick={() => setKeywordToDelete(null)}>Cancel</button>
+              <button className={styles.confirmDeleteBtn} onClick={confirmKeywordDelete}>Remove Configuration</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className={styles.header}>
         <h1>LinkedIn Automation</h1>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <div className={styles.schedulerContainer}>
             <div className={styles.inputField} style={{ alignItems: 'center', marginBottom: 0 }}>
               <label style={{ fontSize: '0.9rem' }}>Daily Scrape at:</label>
-              <input
-                type="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className={styles.input}
-                style={{ padding: '0.5rem 0.75rem', fontSize: '1rem' }}
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <input
+                  type="time"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  className={styles.input}
+                  style={{ padding: '0.5rem 0.75rem', fontSize: '1rem' }}
+                />
+                {serverTime && (
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    Server Time: {serverTime.split(',')[1]?.trim() || serverTime}
+                  </span>
+                )}
+              </div>
               <button className={styles.exportButton} onClick={handleUpdateSchedule}>
                 Update
               </button>
@@ -282,7 +330,7 @@ export default function Home() {
                     <span className={styles.metaBadge}>🔢 {kw.limit} posts</span>
                   </div>
                 </div>
-                <button onClick={() => handleDelete(kw.id)} className={styles.deleteBtn}>Remove</button>
+                <button onClick={() => handleDeleteClick(kw.id)} className={styles.deleteBtn}>Remove</button>
               </div>
             ))}
           </div>

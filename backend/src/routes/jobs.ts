@@ -11,9 +11,9 @@ const APIFY_TOKEN = process.env.APIFY_TOKEN;
 router.get('/history', async (req: Request, res: Response) => {
     try {
         const result = await query(`
-            SELECT j.*, k.term 
+            SELECT j.*, COALESCE(j.term, k.term) as term 
             FROM "ScrapeJob" j
-            JOIN "Keyword" k ON j."keywordId" = k.id
+            LEFT JOIN "Keyword" k ON j."keywordId" = k.id
             ORDER BY j."startedAt" DESC
             LIMIT 50
         `);

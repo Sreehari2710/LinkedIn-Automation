@@ -66,7 +66,8 @@ export const initDb = async () => {
     await query(`
         CREATE TABLE IF NOT EXISTS "ScrapeJob" (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            "keywordId" UUID REFERENCES "Keyword"(id) ON DELETE CASCADE,
+            "keywordId" UUID REFERENCES "Keyword"(id) ON DELETE SET NULL,
+            term TEXT,
             status TEXT DEFAULT 'PENDING',
             "startedAt" TIMESTAMP DEFAULT NOW(),
             "finishedAt" TIMESTAMP,
@@ -75,10 +76,24 @@ export const initDb = async () => {
         );
     `);
 
+    // Migrate existing table if necessary
+    try {
+        await query('ALTER TABLE "ScrapeJob" ADD COLUMN IF NOT EXISTS "term" TEXT');
+        // Update constraint to SET NULL for ScrapeJob
+        await query(`
+            ALTER TABLE "ScrapeJob" 
+            DROP CONSTRAINT IF EXISTS "ScrapeJob_keywordId_fkey",
+            ADD CONSTRAINT "ScrapeJob_keywordId_fkey" 
+            FOREIGN KEY ("keywordId") REFERENCES "Keyword"(id) ON DELETE SET NULL
+        `);
+    } catch (e) {
+        console.log('Migration for ScrapeJob skipped or failed:', e);
+    }
+
     await query(`
         CREATE TABLE IF NOT EXISTS "ScrapedPost" (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            "keywordId" UUID REFERENCES "Keyword"(id) ON DELETE CASCADE,
+            "keywordId" UUID REFERENCES "Keyword"(id) ON DELETE SET NULL,
             "jobId" UUID REFERENCES "ScrapeJob"(id) ON DELETE CASCADE,
             description TEXT,
             "postLink" TEXT UNIQUE,
@@ -92,6 +107,18 @@ export const initDb = async () => {
             "scrapedAt" TIMESTAMP DEFAULT NOW()
         );
     `);
+
+    // Migrate existing table if necessary
+    try {
+        await query(`
+            ALTER TABLE "ScrapedPost" 
+            DROP CONSTRAINT IF EXISTS "ScrapedPost_keywordId_fkey",
+            ADD CONSTRAINT "ScrapedPost_keywordId_fkey" 
+            FOREIGN KEY ("keywordId") REFERENCES "Keyword"(id) ON DELETE SET NULL
+        `);
+    } catch (e) {
+        console.log('Migration for ScrapedPost skipped or failed:', e);
+    }
 
     // Ensure Settings table exists for production robustness
     await query(`
