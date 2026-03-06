@@ -10,12 +10,22 @@ let pool: Pool | null = null;
 const resolveIPv4 = async (url: string) => {
     try {
         const parsed = new URL(url);
-        const lookup = promisify(dns.lookup);
-        const { address } = await lookup(parsed.hostname, { family: 4 });
-        parsed.hostname = address;
-        return parsed.toString();
-    } catch (e) {
-        console.error('IPv4 resolution failed, using original URL:', e);
+        const host = parsed.hostname;
+        console.log(`Resolving IPv4 for host: ${host}`);
+
+        const { resolve4 } = dns.promises;
+        const addresses = await resolve4(host);
+
+        if (addresses && addresses.length > 0) {
+            console.log(`Resolved ${host} to ${addresses[0]}`);
+            parsed.hostname = addresses[0];
+            return parsed.toString();
+        }
+
+        console.log(`No IPv4 addresses found for ${host}, staying with original.`);
+        return url;
+    } catch (e: any) {
+        console.error(`IPv4 resolution failed for host: ${new URL(url).hostname}. Error: ${e.message}`);
         return url;
     }
 };
