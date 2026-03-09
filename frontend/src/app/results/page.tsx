@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import styles from '../page.module.css';
-import { getScrapeHistory, getResultsByJob, downloadResults, deleteScrapeJob, bulkAnalyzeJob, analyzeLead } from '../../utils/api';
+import { getScrapeHistory, getResultsByJob, downloadResults, downloadJobResults, deleteScrapeJob, bulkAnalyzeJob, analyzeLead } from '../../utils/api';
 
 type ScrapeJob = {
     id: string;
@@ -70,7 +70,11 @@ export default function ResultsPage() {
     };
 
     const handleDownload = () => {
-        downloadResults();
+        if (selectedJob) {
+            downloadJobResults(selectedJob.id);
+        } else {
+            downloadResults();
+        }
     };
 
     const handleDeleteJob = async (e: React.MouseEvent, id: string) => {
@@ -154,7 +158,7 @@ export default function ResultsPage() {
                             </>
                         )}
                         <button className={styles.exportButton} onClick={handleDownload} disabled={history.length === 0}>
-                            📥 Download Latest CSV
+                            {selectedJob ? '📥 Download This Session CSV' : '📥 Download Latest CSV'}
                         </button>
                     </div>
                 </div>

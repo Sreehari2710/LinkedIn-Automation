@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { analyzeLead } from '../services/geminiService';
+import { exportJobCSV } from '../services/exportService';
 import path from 'path';
 import fs from 'fs';
 
@@ -51,6 +52,23 @@ router.get('/download', (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error downloading CSV:', error);
         res.status(500).json({ error: 'Failed to download CSV' });
+    }
+});
+
+// Download a specific job's CSV
+router.get('/download/:jobId', async (req: Request, res: Response) => {
+    try {
+        const { jobId } = req.params;
+        const filePath = await exportJobCSV(jobId);
+
+        if (!filePath) {
+            return res.status(404).json({ error: 'No data found for this job' });
+        }
+
+        res.download(filePath);
+    } catch (error) {
+        console.error('Error downloading job CSV:', error);
+        res.status(500).json({ error: 'Failed to download job CSV' });
     }
 });
 

@@ -71,3 +71,74 @@ export const exportDailyCSV = async () => {
         console.error('Failed to export daily CSV:', error);
     }
 };
+export const exportJobCSV = async (jobId: string) => {
+    try {
+        const sql = `
+            SELECT p.*, k.term, k.location as kw_location
+            FROM "ScrapedPost" p
+            LEFT JOIN "Keyword" k ON p."keywordId" = k.id
+            WHERE p."jobId" = $1
+            ORDER BY p."scrapedAt" ASC
+        `;
+
+        const result = await query(sql, [jobId]);
+        const posts = result.rows;
+
+        if (posts.length === 0) {
+            console.log(`No posts found for job ID ${jobId} to export.`);
+            return;
+        }
+
+        const exportsDir = path.join(__dirname, '../../exports');
+        if (!fs.existsSync(exportsDir)) {
+            fs.mkdirSync(exportsDir, { recursive: true });
+        }
+
+        const cleanTerm = posts[0].term.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const filePath = path.join(exportsDir, `linkedin_results_${cleanTerm}_${jobId.substring(0, 8)}.csv`);
+
+        const csvWriter = createObjectCsvWriter({
+            path: filePath,
+            header: [
+                { id: 'keyword', title: 'Keyword' },
+                { id: 'location', title: 'Location' },
+                { id: 'authorName', title: 'Author Name' },
+                { id: 'authorHeadline', title: 'Author Headline' },
+                { id: 'description', title: 'Description' },
+                { id: 'postLink', title: 'Link' },
+                { id: 'qualityScore', title: 'Quality Score %' },
+                { id: 'qualityReason', title: 'Quality Reason' },
+                { id: 'isQualified', title: 'Is Qualified' },
+                { id: 'datePosted', title: 'Date Posted' },
+                { id: 'numLikes', title: 'Likes' },
+                { id: 'numComments', title: 'Comments' },
+                { id: 'numShares', title: 'Shares' },
+                { id: 'scrapedAt', title: 'Scraped At' }
+            ],
+        });
+
+        const records = posts.map((post: any) => ({
+            keyword: post.term,
+            location: post.kw_location || 'Any',
+            authorName: post.authorName || '',
+            authorHeadline: post.authorHeadline || '',
+            description: post.description || '',
+            postLink: post.postLink,
+            qualityScore: post.qualityScore ?? 'Not Analyzed',
+            qualityReason: post.qualityReason || '',
+            isQualified: post.isQualified === true ? 'Yes' : post.isQualified === false ? 'No' : '-',
+            datePosted: post.datePosted || '',
+            numLikes: post.numLikes || 0,
+            numComments: post.numComments || 0,
+            numShares: post.numShares || 0,
+            scrapedAt: post.scrapedAt instanceof Date ? post.scrapedAt.toISOString() : new Date(post.scrapedAt).toISOString(),
+        }));
+
+        await csvWriter.writeRecords(records);
+        console.log(`Job CSV exported to: ${filePath}`);
+        return filePath;
+    } catch (error) {
+        console.error('Failed to export job CSV:', error);
+        throw error;
+    }
+};

@@ -124,3 +124,6 @@ export const bulkAnalyzeJob = async (jobId: string) => {
     });
     return handleResponse(res);
 };
+export const downloadJobResults = (jobId: string) => {
+    window.location.href = `${API_URL}/results/download/${jobId}`;
+};

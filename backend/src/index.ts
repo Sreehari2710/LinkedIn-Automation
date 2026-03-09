@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import dns from 'dns';
+
+dotenv.config();
 import { initScheduler } from './services/scheduler';
 import keywordRoutes from './routes/keywords';
 import jobRoutes from './routes/jobs';
