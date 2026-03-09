@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export interface LeadQualityResult {
     qualityScore: number;
@@ -18,6 +17,11 @@ export const analyzeLead = async (description: string, authorHeadline: string, t
     const apiKey = process.env.GEMINI_API_KEY;
     console.log(`System: Analysis trigger. API Key starts with: ${apiKey?.substring(0, 4)}...`);
 
+    if (!apiKey) {
+        console.error("Critical: GEMINI_API_KEY is missing in environment variables!");
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey || "");
     let lastError: any = null;
 
     for (const modelName of MODELS) {
