@@ -58,7 +58,7 @@ router.get('/download', (req: Request, res: Response) => {
 // Download a specific job's CSV
 router.get('/download/:jobId', async (req: Request, res: Response) => {
     try {
-        const { jobId } = req.params;
+        const jobId = req.params.jobId as string;
         const filePath = await exportJobCSV(jobId);
 
         if (!filePath) {
