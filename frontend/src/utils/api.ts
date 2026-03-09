@@ -110,3 +110,17 @@ export const deleteScrapeJob = async (id: string) => {
     });
     return handleResponse(res);
 };
+
+export const analyzeLead = async (id: string) => {
+    const res = await fetch(`${API_URL}/results/analyze/${id}`, {
+        method: 'POST',
+    });
+    return handleResponse(res);
+};
+
+export const bulkAnalyzeJob = async (jobId: string) => {
+    const res = await fetch(`${API_URL}/results/analyze-job/${jobId}`, {
+        method: 'POST',
+    });
+    return handleResponse(res);
+};

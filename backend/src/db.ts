@@ -11,21 +11,36 @@ const resolveIPv4 = async (url: string) => {
     try {
         const parsed = new URL(url);
         const host = parsed.hostname;
+
+        // Skip resolution if it's already an IP
+        if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return url;
+
         console.log(`Resolving IPv4 for host: ${host}`);
 
-        const { resolve4 } = dns.promises;
-        const addresses = await resolve4(host);
+        try {
+            const { resolve4 } = dns.promises;
+            const addresses = await resolve4(host);
 
-        if (addresses && addresses.length > 0) {
-            console.log(`Resolved ${host} to ${addresses[0]}`);
-            parsed.hostname = addresses[0];
-            return parsed.toString();
+            if (addresses && addresses.length > 0) {
+                console.log(`Resolved ${host} to IPv4: ${addresses[0]}`);
+                parsed.hostname = addresses[0];
+                return parsed.toString();
+            }
+        } catch (dnsErr: any) {
+            console.warn(`DNS resolve4 failed for ${host}: ${dnsErr.message}. Trying dns.lookup...`);
+            const { lookup } = dns.promises;
+            const result = await lookup(host, { family: 4 });
+            if (result.address) {
+                console.log(`Lookup ${host} to IPv4: ${result.address}`);
+                parsed.hostname = result.address;
+                return parsed.toString();
+            }
         }
 
         console.log(`No IPv4 addresses found for ${host}, staying with original.`);
         return url;
     } catch (e: any) {
-        console.error(`IPv4 resolution failed for host: ${new URL(url).hostname}. Error: ${e.message}`);
+        console.error(`IPv4 resolution failed. Error: ${e.message}`);
         return url;
     }
 };
@@ -104,6 +119,9 @@ export const initDb = async () => {
             "numLikes" INTEGER DEFAULT 0,
             "numComments" INTEGER DEFAULT 0,
             "numShares" INTEGER DEFAULT 0,
+            "qualityScore" INTEGER,
+            "qualityReason" TEXT,
+            "isQualified" BOOLEAN,
             "scrapedAt" TIMESTAMP DEFAULT NOW()
         );
     `);
@@ -116,6 +134,10 @@ export const initDb = async () => {
             ADD CONSTRAINT "ScrapedPost_keywordId_fkey" 
             FOREIGN KEY ("keywordId") REFERENCES "Keyword"(id) ON DELETE SET NULL
         `);
+        // Add quality columns if they don't exist
+        await query('ALTER TABLE "ScrapedPost" ADD COLUMN IF NOT EXISTS "qualityScore" INTEGER');
+        await query('ALTER TABLE "ScrapedPost" ADD COLUMN IF NOT EXISTS "qualityReason" TEXT');
+        await query('ALTER TABLE "ScrapedPost" ADD COLUMN IF NOT EXISTS "isQualified" BOOLEAN');
     } catch (e) {
         console.log('Migration for ScrapedPost skipped or failed:', e);
     }

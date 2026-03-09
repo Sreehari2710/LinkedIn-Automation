@@ -1,0 +1,13 @@
+Using Key ending in: ...EFiWk
+Testing URL: https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=HIDDEN
+❌ Failed with v1/gemini-1.5-flash: NOT_FOUND - models/gemini-1.5-flash is not found for API version v1, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Testing URL: https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=HIDDEN
+❌ Failed with v1/gemini-1.5-pro: NOT_FOUND - models/gemini-1.5-pro is not found for API version v1, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Testing URL: https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=HIDDEN
+❌ Failed with v1/gemini-pro: NOT_FOUND - models/gemini-pro is not found for API version v1, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Testing URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=HIDDEN
+❌ Failed with v1beta/gemini-1.5-flash: NOT_FOUND - models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Testing URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=HIDDEN
+❌ Failed with v1beta/gemini-1.5-pro: NOT_FOUND - models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Testing URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=HIDDEN
+❌ Failed with v1beta/gemini-pro: NOT_FOUND - models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.

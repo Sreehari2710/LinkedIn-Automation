@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import styles from '../page.module.css';
-import { getScrapeHistory, getResultsByJob, downloadResults, deleteScrapeJob } from '../../utils/api';
+import { getScrapeHistory, getResultsByJob, downloadResults, deleteScrapeJob, bulkAnalyzeJob, analyzeLead } from '../../utils/api';
 
 type ScrapeJob = {
     id: string;
@@ -24,6 +24,9 @@ type ScrapedPost = {
     numLikes: number;
     numComments: number;
     scrapedAt: string;
+    qualityScore?: number;
+    qualityReason?: string;
+    isQualified?: boolean;
 };
 
 export default function ResultsPage() {
@@ -32,6 +35,7 @@ export default function ResultsPage() {
     const [results, setResults] = useState<ScrapedPost[]>([]);
     const [loading, setLoading] = useState(true);
     const [jobToDelete, setJobToDelete] = useState<string | null>(null);
+    const [analyzing, setAnalyzing] = useState<string | null>(null);
 
     useEffect(() => {
         fetchHistory();
@@ -86,6 +90,35 @@ export default function ResultsPage() {
         }
     };
 
+    const handleBulkAnalyze = async () => {
+        if (!selectedJob) return;
+        setAnalyzing(selectedJob.id);
+        try {
+            await bulkAnalyzeJob(selectedJob.id);
+            const data = await getResultsByJob(selectedJob.id);
+            setResults(Array.isArray(data) ? data : []);
+        } catch (e) {
+            console.error(e);
+            alert('Failed to analyze leads');
+        } finally {
+            setAnalyzing(null);
+        }
+    };
+
+    const handleSingleAnalyze = async (id: string) => {
+        setAnalyzing(id);
+        try {
+            await analyzeLead(id);
+            const data = await getResultsByJob(selectedJob!.id);
+            setResults(Array.isArray(data) ? data : []);
+        } catch (e) {
+            console.error(e);
+            alert('Failed to analyze lead');
+        } finally {
+            setAnalyzing(null);
+        }
+    };
+
     return (
         <main className={styles.main}>
             {jobToDelete && (
@@ -106,9 +139,19 @@ export default function ResultsPage() {
                     <h2>{selectedJob ? `Results for: ${selectedJob.term}` : 'Scrape History'}</h2>
                     <div className={styles.headerActions}>
                         {selectedJob && (
-                            <button className={styles.exportButton} onClick={() => setSelectedJob(null)} style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                                ← Back to History
-                            </button>
+                            <>
+                                <button
+                                    className={styles.exportButton}
+                                    onClick={handleBulkAnalyze}
+                                    disabled={analyzing !== null}
+                                    style={{ background: 'var(--primary)', color: 'white' }}
+                                >
+                                    {analyzing === selectedJob.id ? '⌛ Analyzing...' : '✨ Analyze All Leads'}
+                                </button>
+                                <button className={styles.exportButton} onClick={() => setSelectedJob(null)} style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                                    ← Back to History
+                                </button>
+                            </>
                         )}
                         <button className={styles.exportButton} onClick={handleDownload} disabled={history.length === 0}>
                             📥 Download Latest CSV
@@ -172,13 +215,14 @@ export default function ResultsPage() {
                                     <th>Author</th>
                                     <th>Description</th>
                                     <th>Engagement</th>
+                                    <th>Quality Score</th>
                                     <th>Date</th>
                                     <th>Link</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {results.length === 0 ? (
-                                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>No posts found for this session.</td></tr>
+                                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No posts found for this session.</td></tr>
                                 ) : (
                                     results.map((post) => (
                                         <tr key={post.id}>
@@ -190,6 +234,52 @@ export default function ResultsPage() {
                                             <td>
                                                 <div style={{ fontSize: '0.8rem' }}>👍 {post.numLikes}</div>
                                                 <div style={{ fontSize: '0.8rem' }}>💬 {post.numComments}</div>
+                                            </td>
+                                            <td>
+                                                {post.qualityScore !== null && post.qualityScore !== undefined ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                            <div className={styles.badge} style={{
+                                                                background: post.qualityScore >= 70 ? '#D1FAE5' : post.qualityScore >= 40 ? '#FEF3C7' : '#FEE2E2',
+                                                                color: post.qualityScore >= 70 ? '#065F46' : post.qualityScore >= 40 ? '#92400E' : '#991B1B',
+                                                                border: 'none',
+                                                                fontWeight: 'bold'
+                                                            }}>
+                                                                {post.qualityScore}%
+                                                            </div>
+                                                            <span style={{ fontSize: '0.7rem', fontWeight: 600, color: post.qualityScore >= 70 ? '#059669' : post.qualityScore >= 40 ? '#D97706' : '#DC2626' }}>
+                                                                {post.qualityScore >= 70 ? 'High Quality' : post.qualityScore >= 40 ? 'Average' : 'Low Quality'}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => handleSingleAnalyze(post.id)}
+                                                                disabled={analyzing !== null}
+                                                                className={styles.postLink}
+                                                                style={{ fontSize: '0.6rem', padding: '0.1rem 0.3rem', marginLeft: 'auto' }}
+                                                            >
+                                                                {analyzing === post.id ? '⌛' : '🔄 Analyse Again'}
+                                                            </button>
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: '0.7rem',
+                                                            color: 'var(--text-muted)',
+                                                            lineHeight: '1.4',
+                                                            marginTop: '4px',
+                                                            whiteSpace: 'pre-wrap',
+                                                            maxWidth: '300px'
+                                                        }}>
+                                                            {post.qualityReason}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleSingleAnalyze(post.id)}
+                                                        disabled={analyzing !== null}
+                                                        className={styles.postLink}
+                                                        style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
+                                                    >
+                                                        {analyzing === post.id ? '⌛...' : '✨ Analyze'}
+                                                    </button>
+                                                )}
                                             </td>
                                             <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                                                 {new Date(post.scrapedAt).toLocaleDateString()}
