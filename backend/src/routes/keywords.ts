@@ -17,10 +17,10 @@ router.get('/', async (req: Request, res: Response) => {
 // Create a new keyword
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const { term, location, timeFilter, sortBy, limit, isActive } = req.body;
+        const { term, location, timeFilter, sortBy, limit, directUrl, isActive } = req.body;
         const result = await query(
-            'INSERT INTO "Keyword" (term, location, "timeFilter", "sortBy", "limit", "isActive") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [term, location, timeFilter, sortBy, limit, isActive]
+            'INSERT INTO "Keyword" (term, location, "timeFilter", "sortBy", "limit", "directUrl", "isActive") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [term, location, timeFilter, sortBy, limit, directUrl, isActive]
         );
         res.json(result.rows[0]);
     } catch (error) {
@@ -33,10 +33,10 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { term, location, timeFilter, sortBy, limit, isActive } = req.body;
+        const { term, location, timeFilter, sortBy, limit, directUrl, isActive } = req.body;
         const result = await query(
-            'UPDATE "Keyword" SET term = $1, location = $2, "timeFilter" = $3, "sortBy" = $4, "limit" = $5, "isActive" = $6, "updatedAt" = NOW() WHERE id = $7 RETURNING *',
-            [term, location, timeFilter, sortBy, limit, isActive, id]
+            'UPDATE "Keyword" SET term = $1, location = $2, "timeFilter" = $3, "sortBy" = $4, "limit" = $5, "directUrl" = $6, "isActive" = $7, "updatedAt" = NOW() WHERE id = $8 RETURNING *',
+            [term, location, timeFilter, sortBy, limit, directUrl, isActive, id]
         );
         if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Keyword not found' });

@@ -72,11 +72,19 @@ export const initDb = async () => {
             "timeFilter" TEXT,
             "sortBy" TEXT,
             "limit" INTEGER,
+            "directUrl" TEXT,
             "isActive" BOOLEAN DEFAULT true,
             "createdAt" TIMESTAMP DEFAULT NOW(),
             "updatedAt" TIMESTAMP DEFAULT NOW()
         );
     `);
+
+    // Migrate existing table if necessary
+    try {
+        await query('ALTER TABLE "Keyword" ADD COLUMN IF NOT EXISTS "directUrl" TEXT');
+    } catch (e) {
+        console.log('Migration for Keyword skipped or failed:', e);
+    }
 
     await query(`
         CREATE TABLE IF NOT EXISTS "ScrapeJob" (

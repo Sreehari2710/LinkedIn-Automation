@@ -11,6 +11,7 @@ type Keyword = {
   timeFilter: string;
   sortBy: string;
   limit: number;
+  directUrl: string;
   isActive: boolean;
 };
 
@@ -37,6 +38,8 @@ export default function Home() {
   const [timeFilter, setTimeFilter] = useState('past-24h');
   const [sortBy, setSortBy] = useState('top-match');
   const [limit, setLimit] = useState<number>(10);
+  const [directUrl, setDirectUrl] = useState('');
+  const [searchMode, setSearchMode] = useState<'keyword' | 'url'>('keyword');
   const [loading, setLoading] = useState(false);
   const [keywordToDelete, setKeywordToDelete] = useState<string | null>(null);
   const [serverTime, setServerTime] = useState<string | null>(null);
@@ -102,15 +105,20 @@ export default function Home() {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!term) return;
+    if (!term && !directUrl) {
+      showAlert('Please provide either a Keyword or a Direct URL', 'error');
+      return;
+    }
     setLoading(true);
     try {
-      await createKeyword({ term, location, timeFilter, sortBy, limit, isActive: true });
+      await createKeyword({ term, location, timeFilter, sortBy, limit, directUrl, isActive: true });
       setTerm('');
       setLocation('');
       setTimeFilter('past-24h');
       setSortBy('top-match');
       setLimit(10);
+      setDirectUrl('');
+      setSearchMode('keyword');
       await fetchKeywords();
       showAlert('Keyword added successfully');
     } catch (e: any) {
@@ -249,52 +257,89 @@ export default function Home() {
       )}
 
       <section className={styles.formSection}>
-        <h2>Search Configuration</h2>
+        <div className={styles.tabContainer}>
+          <div
+            className={`${styles.tab} ${searchMode === 'keyword' ? styles.activeTab : ''}`}
+            onClick={() => {
+              setSearchMode('keyword');
+              setDirectUrl('');
+            }}
+          >
+            🔍 Search by Keyword
+          </div>
+          <div
+            className={`${styles.tab} ${searchMode === 'url' ? styles.activeTab : ''}`}
+            onClick={() => {
+              setSearchMode('url');
+              setTerm('');
+            }}
+          >
+            🔗 Direct URL
+          </div>
+        </div>
+
         <form onSubmit={handleAddSubmit} className={styles.form}>
-          <div className={styles.inputField}>
-            <label>Keyword</label>
-            <input
-              type="text"
-              placeholder="e.g. Software Engineer"
-              value={term}
-              onChange={(e) => setTerm(e.target.value)}
-              required
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.inputField}>
-            <label>Location</label>
-            <input
-              type="text"
-              placeholder="e.g. New York, NY"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.inputField}>
-            <label>Date Posted</label>
-            <select
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value)}
-              className={styles.input}
-            >
-              <option value="past-24h">Past 24 Hours</option>
-              <option value="past-week">Past Week</option>
-              <option value="past-month">Past Month</option>
-            </select>
-          </div>
-          <div className={styles.inputField}>
-            <label>Sort By</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className={styles.input}
-            >
-              <option value="top-match">Top Match</option>
-              <option value="latest">Latest</option>
-            </select>
-          </div>
+          {searchMode === 'keyword' ? (
+            <>
+              <div className={styles.inputField}>
+                <label>Keyword</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Software Engineer"
+                  value={term}
+                  onChange={(e) => setTerm(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.inputField}>
+                <label>Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. New York, NY"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.inputField}>
+                <label>Date Posted</label>
+                <select
+                  value={timeFilter}
+                  onChange={(e) => setTimeFilter(e.target.value)}
+                  className={styles.input}
+                >
+                  <option value="past-24h">Past 24 Hours</option>
+                  <option value="past-week">Past Week</option>
+                  <option value="past-month">Past Month</option>
+                  <option value="past-6-months">Past 6 Months</option>
+                  <option value="past-year">Past Year</option>
+                </select>
+              </div>
+              <div className={styles.inputField}>
+                <label>Sort By</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className={styles.input}
+                >
+                  <option value="top-match">Top Match</option>
+                  <option value="latest">Latest</option>
+                </select>
+              </div>
+            </>
+          ) : (
+            <div className={styles.inputField} style={{ gridColumn: '1 / -1' }}>
+              <label>LinkedIn URL</label>
+              <input
+                type="text"
+                placeholder="Paste the full LinkedIn search or post URL here..."
+                value={directUrl}
+                onChange={(e) => setDirectUrl(e.target.value)}
+                className={styles.input}
+              />
+            </div>
+          )}
+
           <div className={styles.inputField}>
             <label>Limit</label>
             <input
@@ -303,12 +348,13 @@ export default function Home() {
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value))}
               min={1}
-              max={100}
+              max={1000}
               className={styles.input}
             />
           </div>
+
           <button type="submit" disabled={loading} className={styles.submitButton}>
-            {loading ? 'Adding...' : 'Add Keyword Configuration'}
+            {loading ? 'Adding...' : `Add ${searchMode === 'keyword' ? 'Keyword' : 'URL'} Configuration`}
           </button>
         </form>
       </section>
@@ -322,12 +368,19 @@ export default function Home() {
             {keywords.map((kw) => (
               <div key={kw.id} className={styles.keywordCard}>
                 <div className={styles.kwInfo}>
-                  <strong>{kw.term}</strong>
+                  <strong>
+                    {kw.term || (kw.directUrl?.length > 40 ? kw.directUrl.substring(0, 40) + '...' : kw.directUrl)}
+                  </strong>
                   <div className={styles.kwMeta}>
-                    <span className={styles.metaBadge}>📍 {kw.location || 'Anywhere'}</span>
-                    <span className={styles.metaBadge}>🕒 {kw.timeFilter}</span>
-                    <span className={styles.metaBadge}>📊 {kw.sortBy}</span>
+                    {!kw.directUrl && (
+                      <>
+                        <span className={styles.metaBadge}>📍 {kw.location || 'Anywhere'}</span>
+                        <span className={styles.metaBadge}>🕒 {kw.timeFilter}</span>
+                        <span className={styles.metaBadge}>📊 {kw.sortBy}</span>
+                      </>
+                    )}
                     <span className={styles.metaBadge}>🔢 {kw.limit} posts</span>
+                    {kw.directUrl && <span className={styles.metaBadge}>🔗 Direct URL</span>}
                   </div>
                 </div>
                 <button onClick={() => handleDeleteClick(kw.id)} className={styles.deleteBtn}>Remove</button>

@@ -39,11 +39,20 @@ export const startScrapingJob = async () => {
             if (sortParam) queryParams.push(sortParam);
             if (timeParam) queryParams.push(timeParam);
 
+            if (keyword.timeFilter === 'past-6-months') queryParams.push('datePosted="past-6-months"');
+            else if (keyword.timeFilter === 'past-year') queryParams.push('datePosted="past-year"');
+
             const searchUrl = `https://www.linkedin.com/search/results/content/?${queryParams.join('&')}`;
+
+            // If directUrl is provided, use it instead of the generated search URL
+            const targetUrl = keyword.directUrl && keyword.directUrl.trim() !== ''
+                ? keyword.directUrl.trim()
+                : searchUrl;
+
             const payload = {
                 "deepScrape": true,
                 "limitPerSource": keyword.limit || 10,
-                "urls": [searchUrl]
+                "urls": [targetUrl]
             };
 
             try {
